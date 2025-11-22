@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NEPTUNE</title>
+    <title>FAM OFC AI Hub</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
@@ -118,7 +118,7 @@
                 <i class="fa-solid fa-layer-group text-xl"></i>
             </div>
             <h1 class="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-400">
-                NEPTUNE
+                FAM OFC Hub
             </h1>
         </div>
 
@@ -144,8 +144,15 @@
             </div>
 
             <form id="generatorForm" class="space-y-5 flex-grow flex flex-col">
+                
+                <!-- Prompt Section with Surprise Me -->
                 <div class="space-y-2">
-                    <label class="text-xs font-medium text-gray-300 uppercase tracking-wider ml-1">Prompt</label>
+                    <div class="flex justify-between items-center ml-1">
+                        <label class="text-xs font-medium text-gray-300 uppercase tracking-wider">Prompt</label>
+                        <button type="button" id="surpriseBtn" class="text-xs text-indigo-400 hover:text-indigo-300 flex items-center gap-1 transition-colors bg-indigo-500/10 px-2 py-1 rounded-md border border-indigo-500/20">
+                            <i class="fa-solid fa-dice"></i> Surprise Me
+                        </button>
+                    </div>
                     <textarea id="promptInput" rows="3" class="w-full bg-[#0f1016]/50 border border-gray-700/50 rounded-xl p-4 text-gray-100 placeholder-gray-600 focus:outline-none input-focus transition-all resize-none text-sm" placeholder="A futuristic city floating in the clouds, cyberpunk style..." required></textarea>
                 </div>
 
@@ -190,6 +197,7 @@
                                 <option value="anime style, studio ghibli">Anime</option>
                                 <option value="cyberpunk, neon lights">Cyberpunk</option>
                                 <option value="3d render, unreal engine 5">3D Render</option>
+                                <option value="oil painting, vincent van gogh">Oil Painting</option>
                             </select>
                             <div class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none">
                                 <i class="fa-solid fa-chevron-down text-xs"></i>
@@ -226,6 +234,7 @@
                     <p class="text-indigo-300 text-sm font-medium animate-pulse">Designing...</p>
                 </div>
 
+                <!-- FIX: Removed crossOrigin attribute to ensure display works -->
                 <img id="resultImage" src="" class="hidden w-full h-full object-contain z-10">
 
                 <div id="actionOverlay" class="hidden absolute bottom-4 flex gap-3 z-20">
@@ -254,7 +263,7 @@
                     <i class="fa-solid fa-robot"></i>
                 </div>
                 <div>
-                    <h3 class="font-bold text-gray-100">BatGPT 🦇</h3>
+                    <h3 class="font-bold text-gray-100">BatGPT</h3>
                     <p class="text-xs text-indigo-300 flex items-center gap-1">
                         <span class="w-1.5 h-1.5 bg-green-500 rounded-full"></span> Online
                     </p>
@@ -306,23 +315,17 @@
             const tabChat = document.getElementById('tab-chat');
 
             if (tab === 'image') {
-                // Show Image, Hide Chat
                 imageView.classList.remove('hidden');
-                imageView.classList.add('grid'); // Restoring grid layout
-                
+                imageView.classList.add('grid'); 
                 chatView.classList.add('hidden');
-                chatView.classList.remove('flex'); // Remove flex when hiding
-                
+                chatView.classList.remove('flex'); 
                 tabImage.classList.add('active');
                 tabChat.classList.remove('active');
             } else {
-                // Hide Image, Show Chat
                 imageView.classList.add('hidden');
-                imageView.classList.remove('grid'); // Remove grid when hiding
-                
+                imageView.classList.remove('grid');
                 chatView.classList.remove('hidden');
-                chatView.classList.add('flex'); // Restore flex layout
-                
+                chatView.classList.add('flex'); 
                 tabImage.classList.remove('active');
                 tabChat.classList.add('active');
             }
@@ -346,6 +349,29 @@
         const fileInput = document.getElementById('fileInput');
         const fileNameDisplay = document.getElementById('fileName');
         const uploadPreview = document.getElementById('uploadPreview');
+        const surpriseBtn = document.getElementById('surpriseBtn');
+
+        // Surprise Me Logic
+        const surprisePrompts = [
+            "A futuristic cyberpunk city with neon lights and flying cars, 8k resolution, cinematic lighting",
+            "An astronaut riding a horse on Mars, digital art, highly detailed",
+            "A cute robot gardening in a post-apocalyptic world, studio ghibli style",
+            "A magical forest with glowing mushrooms and fairy dust, fantasy art",
+            "Portrait of a warrior princess in golden armor, intricate details, photorealistic",
+            "A giant whale swimming through the clouds, dreamlike atmosphere",
+            "A cozy cabin in the snowy mountains at night, warm lighting",
+            "A steampunk owl with mechanical wings, concept art",
+            "An underwater city made of crystal, bioluminescent lighting",
+            "A cat wearing a space suit floating in zero gravity, cute and detailed"
+        ];
+
+        surpriseBtn.addEventListener('click', () => {
+            const randomPrompt = surprisePrompts[Math.floor(Math.random() * surprisePrompts.length)];
+            promptInput.value = randomPrompt;
+            // Optional: Add a little flash effect to input
+            promptInput.classList.add('bg-indigo-900/20');
+            setTimeout(() => promptInput.classList.remove('bg-indigo-900/20'), 300);
+        });
 
         aspectBtns.forEach(btn => {
             btn.addEventListener('click', () => {
@@ -373,14 +399,15 @@
             }
         });
 
-        // Download logic with Fallback
+        // Robust Download Logic
         downloadBtn.addEventListener('click', async () => {
             const url = resultImage.src;
             if (!url) return;
             const originalText = downloadBtn.innerHTML;
-            downloadBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+            downloadBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving...';
+            
             try {
-                // Attempt CORS fetch only when button is clicked
+                // Attempt direct fetch (Browser might block if CORS header is missing)
                 const response = await fetch(url, { mode: 'cors' });
                 if (!response.ok) throw new Error("Network error");
                 const blob = await response.blob();
@@ -393,9 +420,21 @@
                 document.body.removeChild(link);
                 setTimeout(() => window.URL.revokeObjectURL(blobUrl), 100);
             } catch (err) {
-                console.warn("Download fallback", err);
-                // Fallback: Open in new tab
+                console.warn("Download fallback used due to CORS/Browser restrictions", err);
+                
+                // Fallback: Open in new tab and show instruction
                 window.open(url, '_blank');
+                
+                // Create a temporary toast message
+                const toast = document.createElement('div');
+                toast.className = 'fixed bottom-10 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white px-6 py-3 rounded-full shadow-xl z-50 flex items-center gap-3 border border-gray-700 animate-fade-in-up';
+                toast.innerHTML = `
+                    <i class="fa-solid fa-info-circle text-indigo-400"></i>
+                    <span class="text-sm font-medium">Image opened in new tab. Long press to save!</span>
+                `;
+                document.body.appendChild(toast);
+                setTimeout(() => toast.remove(), 5000);
+
             } finally {
                 downloadBtn.innerHTML = originalText;
             }
@@ -414,7 +453,7 @@
             generateBtn.disabled = true;
             generateBtn.classList.add('opacity-70');
             placeholderState.classList.add('hidden');
-            resultImage.classList.add('hidden'); // Ensure image is hidden while loading
+            resultImage.classList.add('hidden');
             actionOverlay.classList.add('hidden');
             errorMessage.classList.add('hidden');
             loadingState.classList.remove('hidden');
@@ -437,7 +476,6 @@
                 if (data.success && data.images && data.images.length > 0) {
                     const imgUrl = data.images[0].image_url;
                     
-                    // FIX: Ensure clean load
                     resultImage.onload = function() {
                         loadingState.classList.add('hidden');
                         statusBadge.classList.add('hidden');
@@ -451,7 +489,7 @@
                         throw new Error("Image failed to load");
                     };
 
-                    // IMPORTANT: No crossOrigin here, just strict src assignment
+                    // NO crossOrigin attribute to ensure display works
                     resultImage.removeAttribute('crossorigin');
                     resultImage.src = imgUrl;
 
@@ -562,5 +600,8 @@
     </script>
 </body>
 </html>
+
+
+
 
 
